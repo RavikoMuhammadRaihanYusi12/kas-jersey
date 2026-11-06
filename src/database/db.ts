@@ -106,18 +106,29 @@ CREATE INDEX IF NOT EXISTS idx_settlements_tx ON kasbon_settlements(transaction_
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
 }
 
-export async function seedIfEmpty(db: Database): Promise<void> {
-  const cat = await db.getFirstAsync<{ c: number }>('SELECT COUNT(*) AS c FROM categories');
-  if ((cat?.c ?? 0) === 0) {
-    for (const c of DEFAULT_CATEGORIES) {
-      await db.runAsync('INSERT INTO categories (name, type, is_system_default) VALUES (?, ?, 1)', c.name, c.type);
-    }
+/**
+ * Ensure every default category exists, without touching existing rows.
+ * Idempotent: safe to run on every app start, recovers from partial/empty seeds,
+ * and never duplicates or deletes user data.
+ */
+export async function seedMissingCategories(db: Database): Promise<void> {
+  for (const c of DEFAULT_CATEGORIES) {
+    await db.runAsync(
+      `INSERT INTO categories (name, type, is_system_default)
+       SELECT ?, ?, 1 WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = ?)`,
+      c.name,
+      c.type,
+      c.name,
+    );
   }
+  seedJobModelsIfEmpty(db);
+}
+
+async function seedJobModelsIfEmpty(db: Database): Promise<void> {
   const jm = await db.getFirstAsync<{ c: number }>('SELECT COUNT(*) AS c FROM job_models');
-  if ((jm?.c ?? 0) === 0) {
-    for (const m of DEFAULT_JOB_MODELS) {
-      await db.runAsync('INSERT INTO job_models (model_name, default_rate) VALUES (?, ?)', m.model_name, m.default_rate);
-    }
+  if ((jm?.c ?? 0) !== 0) return;
+  for (const m of DEFAULT_JOB_MODELS) {
+    await db.runAsync('INSERT INTO job_models (model_name, default_rate) VALUES (?, ?)', m.model_name, m.default_rate);
   }
 }
 

@@ -6,7 +6,7 @@ import { colors } from '@/theme';
 import { employeeRepo } from '@/repositories/employeeRepo';
 import { useStore } from '@/store/useStore';
 
-const ROLES = ['PENJAHIT', 'CUTTING', 'FINISHING'];
+const ROLES = ['GUNTING', 'PRESS', 'DESAINER', 'PALUGADA', 'PENJAHIT', 'BENDAHARA'];
 
 export default function NewEmployeeScreen() {
   const router = useRouter();

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getDatabase, seedIfEmpty } from '@/database/db';
+import { getDatabase, seedMissingCategories } from '@/database/db';
 import { categoryRepo } from '@/repositories/categoryRepo';
 import { employeeRepo } from '@/repositories/employeeRepo';
 import { jobModelRepo } from '@/repositories/jobModelRepo';
@@ -30,7 +30,7 @@ export const useStore = create<State>((set, get) => ({
 
   async init() {
     const db = await getDatabase();
-    await seedIfEmpty(db);
+    await seedMissingCategories(db);
     await Promise.all([
       get().reloadCategories(),
       get().reloadEmployees(),

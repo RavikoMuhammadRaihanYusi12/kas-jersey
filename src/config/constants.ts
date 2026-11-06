@@ -1,5 +1,5 @@
 export const DB_NAME = 'kasjersey.db';
-export const DATABASE_VERSION = 1;
+export const DATABASE_VERSION = 2;
 
 export const CURRENCY = 'IDR';
 export const LOCALE = 'id-ID';
@@ -35,6 +35,7 @@ export const DEFAULT_CATEGORIES = [
   { name: 'Penjualan Jersey', type: 'INCOME' as const },
   { name: 'Modal Masuk', type: 'INCOME' as const },
   { name: 'Upah Borongan Jahit', type: 'EXPENSE' as const },
+  { name: 'Gaji Bulanan', type: 'EXPENSE' as const },
   { name: 'Belanja Bahan Baku', type: 'EXPENSE' as const },
   { name: 'Pemeliharaan Mesin', type: 'EXPENSE' as const },
   { name: 'Token Listrik', type: 'EXPENSE' as const },
