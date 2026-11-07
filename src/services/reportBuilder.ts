@@ -62,7 +62,20 @@ export async function buildPayrollSlipHtml(transactionId: number): Promise<strin
 </body></html>`;
 }
 
-export async function buildLedgerCsv(from: string, to: string): Promise<string> {
+const REPORT_STYLE = `
+  body { font-family: sans-serif; padding: 24px; color:#111; }
+  h1 { font-size: 20px; margin:0 0 4px; }
+  .muted { color:#666; font-size:12px; }
+  table { width:100%; border-collapse: collapse; margin-top:16px; }
+  th,td { border-bottom:1px solid #ddd; padding:6px 4px; font-size:12px; }
+  th { background:#f3f4f6; text-align:left; }
+  td.num, th.num { text-align:right; }
+`;
+
+const escapeHtml = (v: string | null): string =>
+  (v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+export async function buildLedgerHtml(from: string, to: string): Promise<string> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<Transaction & { category_name: string; employee_name: string | null }>(
     `SELECT t.*, c.name AS category_name, e.name AS employee_name
@@ -74,32 +87,49 @@ export async function buildLedgerCsv(from: string, to: string): Promise<string> 
     from,
     to,
   );
-  const header = 'Tanggal,Type,Kategori,Deskripsi,Karyawan,Jumlah';
-  const escape = (v: string | null) => `"${(v ?? '').replace(/"/g, '""')}"`;
   const body = rows
-    .map((r) =>
-      [
-        r.transaction_date,
-        r.type,
-        escape(r.category_name),
-        escape(r.description),
-        escape(r.employee_name),
-        r.amount,
-      ].join(','),
+    .map(
+      (r) =>
+        `<tr><td>${formatDate(r.transaction_date)}</td><td>${escapeHtml(r.category_name)}</td><td>${escapeHtml(
+          r.description,
+        )}</td><td>${escapeHtml(r.employee_name)}</td><td class="num" style="color:${
+          r.type === 'INCOME' ? '#16a34a' : '#dc2626'
+        }">${r.type === 'INCOME' ? '+' : '-'} ${formatCurrency(r.amount)}</td></tr>`,
     )
-    .join('\n');
-  return `${header}\n${body}`;
+    .join('');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8" /><style>${REPORT_STYLE}</style></head><body>
+  <h1>Laporan Kas</h1>
+  <div class="muted">Periode ${formatDate(from)} &ndash; ${formatDate(to)}</div>
+  <table>
+    <thead><tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi</th><th>Karyawan</th><th class="num">Jumlah</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>
+  <p class="muted">Dicetak: ${formatDate(new Date().toISOString())}</p>
+</body></html>`;
 }
 
-export async function buildKasbonCsv(): Promise<string> {
+export async function buildKasbonHtml(): Promise<string> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<Kasbon & { employee_name: string }>(
     `SELECT k.*, e.name AS employee_name FROM kasbon k JOIN employees e ON e.id = k.employee_id ORDER BY k.date DESC`,
   );
-  const header = 'Tanggal,Karyawan,Total,Sisa,Status,Catatan';
-  const escape = (v: string | null) => `"${(v ?? '').replace(/"/g, '""')}"`;
   const body = rows
-    .map((r) => [r.date, escape(r.employee_name), r.total_amount, r.remaining_amount, r.status, escape(r.notes)].join(','))
-    .join('\n');
-  return `${header}\n${body}`;
+    .map(
+      (r) =>
+        `<tr><td>${formatDate(r.date)}</td><td>${escapeHtml(r.employee_name)}</td><td class="num">${formatCurrency(
+          r.total_amount,
+        )}</td><td class="num">${formatCurrency(r.remaining_amount)}</td><td>${r.status}</td><td>${escapeHtml(
+          r.notes,
+        )}</td></tr>`,
+    )
+    .join('');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8" /><style>${REPORT_STYLE}</style></head><body>
+  <h1>Laporan Kasbon</h1>
+  <div class="muted">Semua karyawan</div>
+  <table>
+    <thead><tr><th>Tanggal</th><th>Karyawan</th><th class="num">Total</th><th class="num">Sisa</th><th>Status</th><th>Catatan</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>
+  <p class="muted">Dicetak: ${formatDate(new Date().toISOString())}</p>
+</body></html>`;
 }

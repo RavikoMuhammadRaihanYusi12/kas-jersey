@@ -40,9 +40,6 @@ export default function LedgerScreen() {
             <Pressable style={ui.button} onPress={() => router.push('/transaction')}>
               <Text style={ui.buttonText}>+ Transaksi Baru</Text>
             </Pressable>
-            <Pressable style={[ui.button, ui.buttonSecondary]} onPress={() => router.push('/employee-new')}>
-              <Text style={ui.buttonTextSecondary}>+ Karyawan Baru</Text>
-            </Pressable>
           </View>
         }
         renderItem={({ item }) => (

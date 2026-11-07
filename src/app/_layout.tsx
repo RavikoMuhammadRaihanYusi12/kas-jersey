@@ -39,7 +39,7 @@ export default function RootLayout() {
         <Stack.Screen name="payroll" options={{ presentation: 'modal', headerShown: true, title: 'Upah Borongan' }} />
         <Stack.Screen name="transaction" options={{ presentation: 'modal', headerShown: true, title: 'Transaksi Kas' }} />
         <Stack.Screen name="kasbon-new" options={{ presentation: 'modal', headerShown: true, title: 'Kasbon Baru' }} />
-        <Stack.Screen name="employee-new" options={{ presentation: 'modal', headerShown: true, title: 'Karyawan Baru' }} />
+        <Stack.Screen name="employee-new" options={{ presentation: 'modal', headerShown: true, title: 'Karyawan' }} />
       </Stack>
     </SafeAreaProvider>
   );

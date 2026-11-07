@@ -5,8 +5,8 @@ import { Card } from '@/components/Card';
 import { colors } from '@/theme';
 import { formatCurrency, todayISO } from '@/config/constants';
 import { ledgerRepo } from '@/repositories/ledgerRepo';
-import { buildLedgerCsv, buildKasbonCsv } from '@/services/reportBuilder';
-import { shareCsv } from '@/services/exportService';
+import { buildLedgerHtml, buildKasbonHtml } from '@/services/reportBuilder';
+import { sharePdfFromHtml } from '@/services/exportService';
 
 const firstOfMonth = () => todayISO().slice(0, 8) + '01';
 
@@ -29,17 +29,17 @@ export default function ReportsScreen() {
 
   const exportLedger = async () => {
     try {
-      await shareCsv(await buildLedgerCsv(from, to), `kas-${from}_${to}.csv`);
-    } catch {
-      Alert.alert('Gagal', 'Tidak dapat mengekspor CSV.');
+      await sharePdfFromHtml(await buildLedgerHtml(from, to), `kas-${from}_${to}.pdf`);
+    } catch (e) {
+      Alert.alert('Gagal', String(e));
     }
   };
 
   const exportKasbon = async () => {
     try {
-      await shareCsv(await buildKasbonCsv(), 'kasbon.csv');
-    } catch {
-      Alert.alert('Gagal', 'Tidak dapat mengekspor CSV.');
+      await sharePdfFromHtml(await buildKasbonHtml(), 'kasbon.pdf');
+    } catch (e) {
+      Alert.alert('Gagal', String(e));
     }
   };
 
@@ -70,10 +70,10 @@ export default function ReportsScreen() {
 
       <Text style={ui.h2}>Ekspor</Text>
       <Pressable style={[ui.button, ui.buttonSecondary]} onPress={exportLedger}>
-        <Text style={ui.buttonTextSecondary}>Ekspor Kas (CSV)</Text>
+        <Text style={ui.buttonTextSecondary}>Ekspor Kas (PDF)</Text>
       </Pressable>
       <Pressable style={[ui.button, ui.buttonSecondary]} onPress={exportKasbon}>
-        <Text style={ui.buttonTextSecondary}>Ekspor Kasbon (CSV)</Text>
+        <Text style={ui.buttonTextSecondary}>Ekspor Kasbon (PDF)</Text>
       </Pressable>
       <Text style={ui.muted}>
         Slip upah borongan (PDF) dapat dibagikan saat menyimpan pembayaran upah, atau nanti dari detail transaksi.

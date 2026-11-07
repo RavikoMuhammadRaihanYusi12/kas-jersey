@@ -33,7 +33,7 @@ export const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 1
 
 export const DEFAULT_CATEGORIES = [
   { name: 'Penjualan Jersey', type: 'INCOME' as const },
-  { name: 'Modal Masuk', type: 'INCOME' as const },
+  { name: 'Saldo', type: 'INCOME' as const },
   { name: 'Upah Borongan Jahit', type: 'EXPENSE' as const },
   { name: 'Gaji Bulanan', type: 'EXPENSE' as const },
   { name: 'Belanja Bahan Baku', type: 'EXPENSE' as const },

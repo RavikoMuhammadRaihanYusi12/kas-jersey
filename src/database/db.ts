@@ -112,6 +112,8 @@ CREATE INDEX IF NOT EXISTS idx_settlements_tx ON kasbon_settlements(transaction_
  * and never duplicates or deletes user data.
  */
 export async function seedMissingCategories(db: Database): Promise<void> {
+  // ponytail: rename legacy category label; idempotent, no version bump needed.
+  await db.runAsync(`UPDATE categories SET name = 'Saldo' WHERE name = 'Modal Masuk'`);
   for (const c of DEFAULT_CATEGORIES) {
     await db.runAsync(
       `INSERT INTO categories (name, type, is_system_default)

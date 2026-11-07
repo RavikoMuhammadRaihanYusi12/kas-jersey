@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ui } from '@/components/ui';
 import { colors } from '@/theme';
 import { employeeRepo } from '@/repositories/employeeRepo';
@@ -10,6 +10,8 @@ const ROLES = ['GUNTING', 'PRESS', 'DESAINER', 'PALUGADA', 'PENJAHIT', 'BENDAHAR
 
 export default function NewEmployeeScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const editingId = id ? Number(id) : null;
   const reloadEmployees = useStore((s) => s.reloadEmployees);
 
   const [name, setName] = useState('');
@@ -17,11 +19,25 @@ export default function NewEmployeeScreen() {
   const [role, setRole] = useState(ROLES[0]);
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    if (editingId == null) return;
+    employeeRepo.get(editingId).then((e) => {
+      if (!e) return;
+      setName(e.name);
+      setPhone(e.phone ?? '');
+      setRole(e.role);
+    });
+  }, [editingId]);
+
   const submit = async () => {
     if (!name.trim()) return Alert.alert('Perhatian', 'Nama tidak boleh kosong.');
     setSaving(true);
     try {
-      await employeeRepo.create(name.trim(), phone.trim() || null, role);
+      if (editingId == null) {
+        await employeeRepo.create(name.trim(), phone.trim() || null, role);
+      } else {
+        await employeeRepo.update(editingId, name.trim(), phone.trim() || null, role);
+      }
       await reloadEmployees();
       router.back();
     } catch {
@@ -67,7 +83,7 @@ export default function NewEmployeeScreen() {
       </View>
 
       <Pressable style={[ui.button, saving && { opacity: 0.6 }]} onPress={submit} disabled={saving}>
-        <Text style={ui.buttonText}>{saving ? 'Menyimpan...' : 'Simpan Karyawan'}</Text>
+        <Text style={ui.buttonText}>{saving ? 'Menyimpan...' : editingId == null ? 'Simpan Karyawan' : 'Perbarui Karyawan'}</Text>
       </Pressable>
     </ScrollView>
   );
